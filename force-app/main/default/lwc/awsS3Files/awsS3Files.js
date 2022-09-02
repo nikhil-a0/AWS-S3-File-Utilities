@@ -7,7 +7,7 @@
 //
 //  Contact: john.meyer@salesforce.com
 
-// Call s3 command
+// async attempt
 
 import { LightningElement, api, track } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
