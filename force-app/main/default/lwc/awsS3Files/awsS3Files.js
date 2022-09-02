@@ -132,7 +132,21 @@ export default class AwsS3Files extends LightningElement {
 							const videoFile = isVideoFile(fileName);
                             
                             // Retrieves object from Bucket as objectData string
+                            // Cannot seem to use in same way as getSignedUrl by putting into this.fileList.push(...) 
+                            // because getSignedUrl returns the url string, on the other hand 
+                            // getObject does not return the data itself, it returns it in an object called data and the specific
+                            // property is Body, so it looks like we have to wait for getObject before we call this.fileList.push
                             var objectData;
+                            
+                            function successCallback() {
+                                console.log("success callback called");
+                                console.log(objectData);
+                            }
+
+                            function failureCallback(error) {
+                                console.error(`Error getting object data: ${error}`);
+                            }
+
                             this.s3.getObject({
                                 Bucket: this.awsBucketName,
                                 Key: "0036300001173cfAAA/Call-Center-Webinar-with-Talk-Track.json"
@@ -142,14 +156,15 @@ export default class AwsS3Files extends LightningElement {
                                     console.error(err);
                                 }
                                 else {
-                                    // var objectData = data.Body.toString('utf-8');                                  
+                                    // var objectData = data.Body.toString('utf-8'); 
+                                    console.log('in getObject')                                 
                                     objectData = data.Body.toString('utf-8');
                                     // Prints out JSON if s3 getObject call works
-                                    console.log(objectData)
+                                    // console.log(objectData)
                                 }
-                            });
+                            }).then(successCallback, failureCallback);
                             
-
+                            console.log("about to push");
 							this.fileList.push({
 								selected: false,
 								name: fileName,
@@ -159,7 +174,7 @@ export default class AwsS3Files extends LightningElement {
 								videoFile: videoFile,
 								viewIcon: videoFile ? 'utility:video' : audioFile ? 'utility:volume_high' : null,
 								icon: getIconName(fileName),
-                                transcript: objectData,
+                                // transcript: objectData,
 								link: this.s3.getSignedUrl('getObject', {
 									Bucket: this.awsBucketName,
 									Key: file.Key,
@@ -323,7 +338,7 @@ export default class AwsS3Files extends LightningElement {
 		this.fileBeingViewedIsAudio = file.audioFile;
 		this.fileBeingViewedIcon = file.viewIcon;
 		this.viewModalVisible = true;
-		this.fileTranscript = file.transcript;
+		// this.fileTranscript = file.transcript;
 		this.fileKey = file.key;
 		var words = [];
 		var startTimes = [];
@@ -345,17 +360,6 @@ export default class AwsS3Files extends LightningElement {
 		this.fileTranscriptWords = words;
 		this.fileTranscriptStartTimes = startTimes;
 
-		// /*
-		// iterate through each item
-
-		// add items[i].alternatives[0].content to words
-		// add items[i].start_time to startTimes
-
-
-		// */
-		// this.fileTranscript = jsonTranscript.results.transcripts[0].transcript;
-
-		console.log(file.fileTranscript);
 	}
 
 	handleViewModalDoneButton(event) {
